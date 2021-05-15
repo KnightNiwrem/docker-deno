@@ -1,0 +1,37 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: 20 6 * * 4
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout docker-deno repository
+        uses: actions/checkout@v2
+      - name: Clone denoland/deno repository
+        run: |
+          git clone https://github.com/denoland/deno.git
+      - name: Pull knightniwrem/deno docker image
+        run: |
+          docker pull knightniwrem/deno
+      - name: Conditionally build and update knightniwrem/deno
+        env:
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: |
+          build_and_update_image() {
+            docker login -u knightniwrem -p $DOCKER_HUB_ACCESS_TOKEN
+            docker build -t knightniwrem/deno .
+            docker tag knightniwrem/deno:latest knightniwrem/deno:$GIT_DENO_VERSION
+            docker push knightniwrem/deno:latest
+            docker push knightniwrem/deno:$GIT_DENO_VERSION
+          }
+          DOCKER_DENO_VERSION=v$(docker run -it knightniwrem/deno --version | grep deno | awk '{print $2}' | xargs)
+          pushd deno
+          GIT_DENO_VERSION=$(git tag --sort=-committerdate | grep v1 | head -1)
+          popd
+          rm -rf deno
+          [[ "$DOCKER_DENO_VERSION" == "$GIT_DENO_VERSION" ]] || build_and_update_image
