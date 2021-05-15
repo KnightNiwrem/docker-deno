@@ -29,9 +29,9 @@ jobs:
             docker push knightniwrem/deno:latest
             docker push knightniwrem/deno:$GIT_DENO_VERSION
           }
-          DOCKER_DENO_VERSION=v$(docker run -it knightniwrem/deno --version | grep deno | awk '{print $2}' | xargs)
+          DOCKER_DENO_VERSION=v$(docker run knightniwrem/deno --version | grep deno | awk '{print $2}' | xargs)
           pushd deno
-          GIT_DENO_VERSION=$(git tag --sort=-committerdate | grep v1 | head -1)
+          GIT_DENO_VERSION=$(git tag --sort=-committerdate | grep v1 | head -1 | xargs)
           popd
           rm -rf deno
           [[ "$DOCKER_DENO_VERSION" == "$GIT_DENO_VERSION" ]] || build_and_update_image
