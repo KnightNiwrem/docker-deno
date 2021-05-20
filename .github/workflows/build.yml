@@ -24,7 +24,7 @@ jobs:
         run: |
           build_and_update_image() {
             docker login -u knightniwrem -p $DOCKER_HUB_ACCESS_TOKEN
-            docker build -t knightniwrem/deno .
+            docker build --no-cache -t knightniwrem/deno .
             docker tag knightniwrem/deno:latest knightniwrem/deno:$GIT_DENO_VERSION
             docker push knightniwrem/deno:latest
             docker push knightniwrem/deno:$GIT_DENO_VERSION
